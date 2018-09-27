@@ -1,0 +1,23 @@
+{
+    "name": "specials",
+    "version": "1.0.0",
+    "private": false,
+    "description": "A tool to manage general or special handle.",
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/gaoxiaosong/specials"
+    },
+    "keywords": [
+        "General",
+        "Special",
+        "Handle"
+    ],
+    "author": "Xiaosong Gao",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/gaoxiaosong/specials/issues",
+        "email": "gaoxiaosong06@gmail.com"
+    },
+    "homepage": "https://github.com/gaoxiaosong/specials#readme"
+}
