@@ -4,6 +4,9 @@
     "private": false,
     "description": "A tool to manage general or special handle.",
     "main": "index.js",
+    "scripts": {
+        "test": "jest"
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/gaoxiaosong/specials"
@@ -19,5 +22,11 @@
         "url": "https://github.com/gaoxiaosong/specials/issues",
         "email": "gaoxiaosong06@gmail.com"
     },
-    "homepage": "https://github.com/gaoxiaosong/specials#readme"
+    "homepage": "https://github.com/gaoxiaosong/specials#readme",
+    "devDependencies": {
+        "babel-core": "^6.26.3",
+        "babel-jest": "^23.6.0",
+        "babel-preset-env": "^1.7.0",
+        "jest": "^23.6.0"
+    }
 }

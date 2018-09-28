@@ -2,9 +2,15 @@ export const DEFAULT_HANDLE = '__default__';
 export const SPECIAL_PART = 'special';
 export const COUNT_PART = 'count';
 
-const kId = 'id';
-const kSpecial = 'special';
-const kHandle = 'handle';
+export const kId = 'id';
+export const kSpecial = 'special';
+export const kHandle = 'handle';
+
+export const PRIORITY = {
+    LOW: -255,
+    DEFAULT: 0,
+    HIGH: 255,
+};
 
 /**
  * Find handle in root object with path.
@@ -82,7 +88,7 @@ export function register(obj, path, specialFunc, handle) {
         return handleId;
     } else {
         const item = getPaths(path)
-            .filter(item => item !== DEFAULT_HANDLE)
+            .filter(pathItem => pathItem !== DEFAULT_HANDLE)
             .reduce((prv, cur) => {
                 if (!prv[cur]) {
                     prv[cur] = {};
@@ -132,8 +138,8 @@ export function unregister(obj, path, handleId) {
 }
 
 function handleItem(handle, params) {
-    if (typeof finalFunc === 'function') {
-        if (!params) {
+    if (typeof handle === 'function') {
+        if (params === undefined || params === null) {
             return handle;
         } else {
             return handle(params);
