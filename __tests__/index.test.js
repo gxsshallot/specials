@@ -43,7 +43,8 @@ test('Register Special', () => {
             .toEqual({
                 [Special.kId]: identifier,
                 [Special.kSpecial]: special,
-                [Special.kHandle]: value
+                [Special.kHandle]: value,
+                [Special.kPriority]: Special.PRIORITY.DEFAULT
             });
         index++;
     };
@@ -89,6 +90,29 @@ test('Get Special', () => {
     testFunc(type, func);
     testFunc([type], func);
     testFunc([type, subtype], func);
+});
+
+test('Get Special With Priority', () => {
+    const rootNode = {};
+    const highText = text + text;
+    const highFunc = (param) => param * 100;
+    const testFunc = (keys, value, highValue) => {
+        const isFunc = typeof value === 'function' && typeof highValue === 'function';
+        const index = 1;
+        const lowId = Special.register(rootNode, keys, state => state === index, value);
+        const highId = Special.register(rootNode, keys, state => state === index, highValue, Special.PRIORITY.HIGH);
+        expect(Special.get(rootNode, keys, index, undefined)).toBe(highValue);
+        expect(Special.get(rootNode, keys, index, index * 10)).toBe(isFunc ? highValue(index * 10) : highValue);
+        expect(Special.get(rootNode, keys, index * 100, index * 10)).toBe(undefined);
+        Special.unregister(rootNode, keys, lowId);
+        Special.unregister(rootNode, keys, highId);
+    };
+    testFunc(type, text, highText);
+    testFunc([type], text, highText);
+    testFunc([type, subtype], text, highText);
+    testFunc(type, func, highFunc);
+    testFunc([type], func, highFunc);
+    testFunc([type, subtype], func, highFunc);
 });
 
 test('Unregister General', () => {

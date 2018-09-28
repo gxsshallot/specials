@@ -1,10 +1,10 @@
 export const DEFAULT_HANDLE = '__default__';
 export const SPECIAL_PART = 'special';
-export const COUNT_PART = 'count';
 
 export const kId = 'id';
 export const kSpecial = 'special';
 export const kHandle = 'handle';
+export const kPriority = 'priority';
 
 export const PRIORITY = {
     LOW: -255,
@@ -28,7 +28,14 @@ export function get(obj, path, state, params) {
         const specs = keyItem[SPECIAL_PART]
             .filter(specItem => specItem[kSpecial](state));
         if (specs.length > 0) {
-            return handleItem(specs[0][kHandle], params);
+            const item = specs.reduce((prv, cur) => {
+                if (prv[kPriority] < cur[kPriority]) {
+                    return cur;
+                } else {
+                    return prv;
+                }
+            });
+            return handleItem(item[kHandle], params);
         }
     }
     let result = obj[DEFAULT_HANDLE];
@@ -63,28 +70,28 @@ export function get(obj, path, state, params) {
  * Register a handle in root object.
  * @param obj Root object.
  * @param path Tree path, a string or an array of string.
- * @param specialFunc Special judging function.
+ * @param special Special judging function.
  * @param handle Handle.
  * @returns {*} Return handle identifier for unregister if it has special judging function.
  */
-export function register(obj, path, specialFunc, handle) {
-    if (specialFunc) {
+export function register(obj, path, special, handle, priority = PRIORITY.DEFAULT) {
+    if (special) {
         const keyPath = getKeyPath(path);
         if (!obj[keyPath]) {
             obj[keyPath] = {};
         }
-        const handleId = (obj[keyPath][COUNT_PART] || 0) + 1;
-        const value = {
-            [kId]: handleId,
-            [kSpecial]: specialFunc,
-            [kHandle]: handle,
-        };
-        if (obj[keyPath][SPECIAL_PART]) {
-            obj[keyPath][SPECIAL_PART].push(value);
-        } else {
-            obj[keyPath][SPECIAL_PART] = [value];
+        const keyItem = obj[keyPath];
+        if (!keyItem[SPECIAL_PART]) {
+            keyItem[SPECIAL_PART] = [];
         }
-        obj[keyPath][COUNT_PART] = handleId;
+        const handleId = keyItem[SPECIAL_PART].length === 0 ? 1 :
+            keyItem[SPECIAL_PART][keyItem[SPECIAL_PART].length - 1][kId] + 1;
+        keyItem[SPECIAL_PART].push({
+            [kId]: handleId,
+            [kSpecial]: special,
+            [kHandle]: handle,
+            [kPriority]: priority,
+        });
         return handleId;
     } else {
         const item = getPaths(path)
@@ -109,30 +116,29 @@ export function register(obj, path, specialFunc, handle) {
 export function unregister(obj, path, handleId) {
     if (handleId) {
         const keyPath = getKeyPath(path);
-        const item = obj[keyPath];
-        if (!item || !item[SPECIAL_PART]) {
+        const keyItem = obj[keyPath];
+        if (!keyItem || !keyItem[SPECIAL_PART]) {
             return false;
         } else {
-            const len = item[SPECIAL_PART].length;
-            item[SPECIAL_PART] = item[SPECIAL_PART]
-                .filter(specItem => specItem[kId] !== handleId);
-            return item[SPECIAL_PART].length !== len;
+            const len = keyItem[SPECIAL_PART].length;
+            keyItem[SPECIAL_PART] = keyItem[SPECIAL_PART]
+                .filter(item => item[kId] !== handleId);
+            return keyItem[SPECIAL_PART].length !== len;
         }
     } else {
         const paths = getPaths(path);
-        if (paths.length >= 1) {
-            if (obj[paths[0]]) {
-                return unregister(obj[paths[0]], paths.slice(1, paths.length), undefined);
+        const item = paths.reduce((prv, cur) => {
+            if (prv[cur]) {
+                return prv[cur];
             } else {
-                return false;
+                return {};
             }
+        }, obj);
+        if (item.hasOwnProperty(DEFAULT_HANDLE)) {
+            delete item[DEFAULT_HANDLE];
+            return true;
         } else {
-            if (obj.hasOwnProperty(DEFAULT_HANDLE)) {
-                delete obj[DEFAULT_HANDLE];
-                return true;
-            } else {
-                return false;
-            }
+            return false;
         }
     }
 }
@@ -150,10 +156,14 @@ function handleItem(handle, params) {
 }
 
 function getKeyPath(path) {
-    return Array.isArray(path) ? path[0] : path;
+    return getPaths(path)[0];
 }
 
 function getPaths(path) {
     const paths = Array.isArray(path) ? path : [path];
-    return paths.filter(item => item !== undefined && item !== null);
+    const validPaths = paths.filter(item => item !== undefined && item !== null);
+    if (validPaths.length <= 0) {
+        console.error('Path ' + JSON.stringify(path) + ' is not valid');
+    }
+    return validPaths;
 }
