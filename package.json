@@ -9,7 +9,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/gaoxiaosong/specials"
+        "url": "git+https://github.com/gaoxiaosong/specials.git"
     },
     "keywords": [
         "General",
@@ -24,9 +24,9 @@
     },
     "homepage": "https://github.com/gaoxiaosong/specials#readme",
     "devDependencies": {
-        "babel-core": "^6.26.3",
-        "babel-jest": "^23.6.0",
-        "babel-preset-env": "^1.7.0",
-        "jest": "^23.6.0"
+        "babel-core": "6.26.3",
+        "babel-jest": "23.6.0",
+        "babel-preset-env": "1.7.0",
+        "jest": "23.6.0"
     }
 }
