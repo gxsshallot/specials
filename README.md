@@ -1,6 +1,7 @@
 # specials
 
-[Chinese README](README-zh_CN.md)
+[![npm version](https://img.shields.io/npm/v/specials.svg?style=flat)](https://www.npmjs.com/package/specials)
+[![Build Status](https://travis-ci.org/gaoxiaosong/react-native-picklist.svg?branch=master)](https://travis-ci.org/gaoxiaosong/react-native-picklist)
 
 A tool to manage general or special handle.
 
