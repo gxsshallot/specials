@@ -22,47 +22,34 @@ export const PRIORITY = {
  * @returns {*} Handle result.
  */
 export function get(obj, path, state, params) {
-    const keyPath = getKeyPath(path);
-    const keyItem = obj[keyPath];
-    if (keyItem && keyItem[SPECIAL_PART] && keyItem[SPECIAL_PART].length > 0) {
-        const specs = keyItem[SPECIAL_PART]
-            .filter(specItem => specItem[kSpecial](state));
-        if (specs.length > 0) {
-            const item = specs.reduce((prv, cur) => {
-                if (prv[kPriority] < cur[kPriority]) {
-                    return cur;
-                } else {
-                    return prv;
-                }
-            });
-            return handleItem(item[kHandle], params);
+    const paths = getPaths(path);
+    const items = [obj];
+    paths.reduce((prv, cur) => {
+        if (!prv) {
+            return prv;
+        } else {
+            prv[cur] && items.push(prv[cur]);
+            return prv[cur];
+        }
+    }, obj);
+    // Special Check
+    for (let i = items.length - 1; i >= 0; i--) {
+        const item = items[i];
+        if (item[SPECIAL_PART] && item[SPECIAL_PART].length > 0) {
+            const specs = item[SPECIAL_PART]
+                .filter(cur => cur[kSpecial](state));
+            if (specs.length > 0) {
+                const result = specs.reduce((prv, cur) => prv[kPriority] < cur[kPriority] ? cur : prv);
+                return handleItem(result[kHandle], params);
+            }
         }
     }
-    let result = obj[DEFAULT_HANDLE];
-    getPaths(path)
-        .reduce((prv, cur) => {
-            if (!prv) {
-                return prv;
-            } else {
-                if (prv[cur]) {
-                    const defaultItem = prv[cur][DEFAULT_HANDLE];
-                    if (defaultItem) {
-                        result = defaultItem;
-                    }
-                    return prv[cur];
-                } else {
-                    const defaultItem = prv[DEFAULT_HANDLE];
-                    if (defaultItem) {
-                        result = defaultItem;
-                    }
-                    return undefined;
-                }
-            }
-        }, obj);
-    if (typeof result !== 'undefined') {
-        return handleItem(result, params);
-    } else {
-        return result;
+    // Regular Check
+    for (let i = items.length - 1; i >= 0; i--) {
+        const item = items[i];
+        if (item[DEFAULT_HANDLE]) {
+            return handleItem(item[DEFAULT_HANDLE], params);
+        }
     }
 }
 
@@ -75,18 +62,20 @@ export function get(obj, path, state, params) {
  * @returns {*} Return handle identifier for unregister if it has special judging function.
  */
 export function register(obj, path, special, handle, priority = PRIORITY.DEFAULT) {
+    const paths = getPaths(path);
+    const item = paths.reduce((prv, cur) => {
+        if (!prv[cur]) {
+            prv[cur] = {};
+        }
+        return prv[cur];
+    }, obj);
     if (special) {
-        const keyPath = getKeyPath(path);
-        if (!obj[keyPath]) {
-            obj[keyPath] = {};
+        if (!item[SPECIAL_PART]) {
+            item[SPECIAL_PART] = [];
         }
-        const keyItem = obj[keyPath];
-        if (!keyItem[SPECIAL_PART]) {
-            keyItem[SPECIAL_PART] = [];
-        }
-        const handleId = keyItem[SPECIAL_PART].length === 0 ? 1 :
-            keyItem[SPECIAL_PART][keyItem[SPECIAL_PART].length - 1][kId] + 1;
-        keyItem[SPECIAL_PART].push({
+        const arr = item[SPECIAL_PART];
+        const handleId = arr.length === 0 ? 1 : arr[arr.length - 1][kId] + 1;
+        arr.push({
             [kId]: handleId,
             [kSpecial]: special,
             [kHandle]: handle,
@@ -94,14 +83,6 @@ export function register(obj, path, special, handle, priority = PRIORITY.DEFAULT
         });
         return handleId;
     } else {
-        const item = getPaths(path)
-            .filter(pathItem => pathItem !== DEFAULT_HANDLE)
-            .reduce((prv, cur) => {
-                if (!prv[cur]) {
-                    prv[cur] = {};
-                }
-                return prv[cur];
-            }, obj);
         item[DEFAULT_HANDLE] = handle;
     }
 }
@@ -114,27 +95,19 @@ export function register(obj, path, special, handle, priority = PRIORITY.DEFAULT
  * @returns {boolean} Success or failure.
  */
 export function unregister(obj, path, handleId) {
+    const paths = getPaths(path);
+    const item = paths.reduce((prv, cur) => prv[cur] || {}, obj);
     if (handleId) {
-        const keyPath = getKeyPath(path);
-        const keyItem = obj[keyPath];
-        if (!keyItem || !keyItem[SPECIAL_PART]) {
-            return false;
+        if (item[SPECIAL_PART]) {
+            const len = item[SPECIAL_PART].length;
+            item[SPECIAL_PART] = item[SPECIAL_PART]
+                .filter(cur => cur[kId] !== handleId);
+            return item[SPECIAL_PART].length !== len;
         } else {
-            const len = keyItem[SPECIAL_PART].length;
-            keyItem[SPECIAL_PART] = keyItem[SPECIAL_PART]
-                .filter(item => item[kId] !== handleId);
-            return keyItem[SPECIAL_PART].length !== len;
+            return false;
         }
     } else {
-        const paths = getPaths(path);
-        const item = paths.reduce((prv, cur) => {
-            if (prv[cur]) {
-                return prv[cur];
-            } else {
-                return {};
-            }
-        }, obj);
-        if (item.hasOwnProperty(DEFAULT_HANDLE)) {
+        if (item[DEFAULT_HANDLE]) {
             delete item[DEFAULT_HANDLE];
             return true;
         } else {
@@ -155,15 +128,14 @@ function handleItem(handle, params) {
     }
 }
 
-function getKeyPath(path) {
-    return getPaths(path)[0];
-}
-
 function getPaths(path) {
     const paths = Array.isArray(path) ? path : [path];
-    const validPaths = paths.filter(item => item !== undefined && item !== null);
-    if (validPaths.length <= 0) {
-        console.error('Path ' + JSON.stringify(path) + ' is not valid');
-    }
-    return validPaths;
+    return paths.filter(item => {
+        return (
+            item !== undefined && 
+            item !== null && 
+            item !== DEFAULT_HANDLE && 
+            item !== SPECIAL_PART
+        );
+    });
 }

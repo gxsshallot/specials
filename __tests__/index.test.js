@@ -7,17 +7,18 @@ const special = (state) => state;
 const func = (param) => param;
 
 function internal(rootNode, key, other = undefined) {
-    const keys = Array.isArray(key) ? key : [key];
+    const allKeys = Array.isArray(key) ? key : [key];
+    const keys = allKeys.filter(i => i !== undefined && i !== null);
     if (other) {
         keys.push(other);
     }
-    return [rootNode, ...keys].reduce((prv, cur) => {
-        if (prv && Object.prototype.isPrototypeOf(prv) && prv.hasOwnProperty(cur)) {
+    return keys.reduce((prv, cur) => {
+        if (prv && prv[cur]) {
             return prv[cur];
         } else {
             return undefined;
         }
-    });
+    }, rootNode);
 }
 
 test('Register General', () => {
@@ -36,24 +37,22 @@ test('Register General', () => {
 
 test('Register Special', () => {
     const rootNode = {};
-    let index = 0;
-    const testFunc = (keys, value) => {
+    const testFunc = (keys, value, index) => {
         const identifier = Specials.register(rootNode, keys, special, value);
-        expect(internal(rootNode, Array.isArray(keys) ? keys[0] : keys, Specials.SPECIAL_PART)[index])
+        expect(internal(rootNode, keys, Specials.SPECIAL_PART)[index])
             .toEqual({
                 [Specials.kId]: identifier,
                 [Specials.kSpecial]: special,
                 [Specials.kHandle]: value,
                 [Specials.kPriority]: Specials.PRIORITY.DEFAULT
             });
-        index++;
     };
-    testFunc(type, text);
-    testFunc([type], text);
-    testFunc([type, subtype], text);
-    testFunc(type, func);
-    testFunc([type], func);
-    testFunc([type, subtype], func);
+    testFunc(type, text, 0);
+    testFunc([type], text, 1);
+    testFunc([type, subtype], text, 0);
+    testFunc(type, func, 2);
+    testFunc([type], func, 3);
+    testFunc([type, subtype], func, 1);
 });
 
 test('Get General', () => {
@@ -146,7 +145,7 @@ test('Unregister Special', () => {
     const testFunc = (keys, value) => {
         const identifier = Specials.register(rootNode, keys, special, value);
         unregisterFunc(keys, identifier);
-        expect(internal(rootNode, Array.isArray(keys) ? keys[0] : keys, Specials.SPECIAL_PART).length).toBe(0);
+        expect(internal(rootNode, keys, Specials.SPECIAL_PART).length).toBe(0);
     };
     const identifier = '1234567890';
     testFunc(type ,text);
