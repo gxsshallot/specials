@@ -4,20 +4,16 @@ node_js:
 os:
   - linux
 
-cache:
-  directories:
-    - "node_modules"
+cache: yarn
 
 stages:
   - name: test
   - name: deploy
+    if: tag = true
 
 jobs:
   include:
     - stage: test
-      script:
-        - yarn
-        - npm run test
     - stage: deploy
       script: skip
       deploy:
