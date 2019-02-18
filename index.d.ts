@@ -16,7 +16,9 @@ export interface RootType {
     [key: string]: any;
 }
 
-export type PathType = string | string[];
+type Path = string | number | void;
+
+export type PathType = Path | Path[];
 
 /**
  * Find handle in root object with path.
