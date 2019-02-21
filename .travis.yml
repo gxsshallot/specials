@@ -17,9 +17,9 @@ jobs:
     - stage: deploy
       script: skip
       before_deploy:
+        - rm -f .gitignore
         - yarn
         - yarn run build
-        - ls
       deploy:
         provider: npm
         email: gaoxiaosong06@gmail.com
