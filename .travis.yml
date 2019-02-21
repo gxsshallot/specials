@@ -20,6 +20,6 @@ jobs:
         provider: npm
         email: gaoxiaosong06@gmail.com
         api_key: "$NPM_TOKEN"
-        skip_cleanup: false
+        skip_cleanup: true
         on:
           tags: true
