@@ -16,6 +16,7 @@ jobs:
     - stage: test
     - stage: deploy
       script: skip
+      before_deploy: yarn run build
       deploy:
         provider: npm
         email: gaoxiaosong06@gmail.com

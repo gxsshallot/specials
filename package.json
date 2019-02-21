@@ -3,9 +3,11 @@
     "version": "1.2.1",
     "private": false,
     "description": "A tool to manage general or special handle.",
-    "main": "index.js",
-    "types": "index.d.ts",
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
     "scripts": {
+        "start": "tsc -w",
+        "build": "tsc",
         "test": "jest"
     },
     "repository": {
@@ -25,9 +27,9 @@
     },
     "homepage": "https://github.com/gaoxiaosong/specials#readme",
     "devDependencies": {
-        "babel-core": "6.26.3",
-        "babel-jest": "23.6.0",
-        "babel-preset-env": "1.7.0",
-        "jest": "23.6.0"
+        "@types/jest": "^24.0.6",
+        "jest": "^24.1.0",
+        "ts-jest": "^24.0.0",
+        "typescript": "^3.3.3"
     }
 }
