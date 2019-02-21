@@ -10,7 +10,7 @@
     "declaration": true,                   /* Generates corresponding '.d.ts' file. */
     "declarationMap": true,
     "sourceMap": true,                     /* Generates corresponding '.map' file. */
-    "outDir": "./dist",
+    "outDir": "./lib",
     // "rootDir": "./",                       /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
     // "composite": true,                     /* Enable project compilation */
     // "removeComments": true,                /* Do not emit comments to output. */
