@@ -28,7 +28,7 @@ export interface Special<S, P, R> {
 }
 
 export interface Item<S, P, R> {
-    [DEFAULT_HANDLE]?: R;
+    [DEFAULT_HANDLE]?: R | HandleFunc<P, R>;
     [SPECIAL_PART]: Special<S, P, R>[];
     [CHILD_PART]: {
         [key: string]: Item<S, P, R>;
@@ -41,12 +41,12 @@ export interface Instance<S, P, R> {
     getStorage: () => Root<S, P, R>;
     clearStorage: () => void;
     get: (path: Path, state?: S, params?: P) => HandleResult<R>;
-    registerDefault: (path: Path, handle: R) => void;
+    registerDefault: (path: Path, handle: R | HandleFunc<P, R>) => void;
     registerSpecial: (path: Path, special: StateFunc<S>, handle: HandleFunc<P, R>, priority?: number) => HandleId;
     unregister: (path: Path, handleId?: HandleId) => boolean;
 }
 
-export function getInstance<S, P, R>() {
+export function getInstance<S, P, R>(): Instance<S, P, R> {
     const root: Root<S, P, R> = generateNode();
     return {
         getStorage: function () {
@@ -60,7 +60,7 @@ export function getInstance<S, P, R>() {
         get: function (path: Path, state?: S, params?: P) {
             return get(root, path, state, params);
         },
-        registerDefault: function (path: Path, handle: R) {
+        registerDefault: function (path: Path, handle: R | HandleFunc<P, R>) {
             return registerDefault(root, path, handle);
         },
         registerSpecial: function (path: Path, special: StateFunc<S>, handle: HandleFunc<P, R>, priority: number = PRIORITY.DEFAULT) {
@@ -120,8 +120,14 @@ function get<S, P, R>(
     }
     // Regular Check
     for (let i = items.length - 1; i >= 0; i--) {
-        if (items[i][DEFAULT_HANDLE]) {
-            return items[i][DEFAULT_HANDLE];
+        const item = items[i][DEFAULT_HANDLE];
+        if (item) {
+            if (typeof item === 'function') {
+                const func = item as HandleFunc<P, R>;
+                return func(params);
+            } else {
+                return item;
+            }
         }
     }
 }
@@ -132,7 +138,7 @@ function get<S, P, R>(
 function registerDefault<S, P, R>(
     obj: Root<S, P, R>,
     path: Path,
-    handle: R
+    handle: R | HandleFunc<P, R>
 ): void {
     const paths = validPath(path);
     const item = paths.reduce((prv, cur) => {

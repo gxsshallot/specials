@@ -66,22 +66,32 @@ test('Register Special', () => {
 });
 
 test('Get General', () => {
-    const notExistKeys = [type, subtype, type];
-    const testFunc = function<S, P, R>(
+    const notExistKeys = [subtype, type, type];
+    const testObj = function<S, P, R>(
         instance: Specials.Instance<S, P, R>,
         keys: Specials.Path,
         value: R
     ) {
         instance.registerDefault(keys, value);
         expect(instance.get(keys, undefined, undefined)).toBe(value);
-        expect(instance.get(notExistKeys, undefined, undefined)).toBe(value);
+        expect(instance.get(notExistKeys, undefined, undefined)).toBe(undefined);
+        instance.unregister(keys);
+    };
+    const testFunc = function<S, R>(
+        instance: Specials.Instance<S, number, R>,
+        keys: Specials.Path,
+        value: Specials.HandleFunc<number, R>
+    ) {
+        instance.registerDefault(keys, value);
+        expect(instance.get(keys, undefined, 1)).toBe(1);
+        expect(instance.get(notExistKeys, undefined, 2)).toBe(undefined);
         instance.unregister(keys);
     };
     const textObj = Specials.getInstance<void, void, string>();
-    testFunc(textObj, type, text);
-    testFunc(textObj, [type], text);
-    testFunc(textObj, [type, subtype], text);
-    const funcObj = Specials.getInstance<void, void, typeof func>();
+    testObj(textObj, type, text);
+    testObj(textObj, [type], text);
+    testObj(textObj, [type, subtype], text);
+    const funcObj = Specials.getInstance<void, number, number>();
     testFunc(funcObj, type, func);
     testFunc(funcObj, [type], func);
     testFunc(funcObj, [type, subtype], func);
