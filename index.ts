@@ -122,11 +122,11 @@ function get<S, P, R>(
     for (let i = items.length - 1; i >= 0; i--) {
         const item = items[i][DEFAULT_HANDLE];
         if (item) {
-            if (typeof item === 'function') {
+            if (params && typeof item === 'function') {
                 const func = item as HandleFunc<P, R>;
                 return func(params);
             } else {
-                return item;
+                return item as R;
             }
         }
     }
