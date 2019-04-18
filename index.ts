@@ -16,7 +16,8 @@ export const PRIORITY = {
 export type PathKey = string | number | void | null;
 export type Path = PathKey | PathKey[];
 export type StateFunc<S> = (state?: S) => boolean;
-export type HandleResult<R> = R | void;
+export type ResultFunc = () => any;
+export type HandleResult<R> = R | ResultFunc | void;
 export type HandleFunc<P, R> = (params?: P) => HandleResult<R>;
 export type HandleId = number;
 
@@ -119,7 +120,7 @@ function get<S, P, R>(
             if (params && typeof handle === 'function') {
                 return handle(params);
             } else {
-                return handle;
+                return handle as ResultFunc;
             }
         }
     }
