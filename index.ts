@@ -115,7 +115,12 @@ function get<S, P, R>(
         const specs = items[i][SPECIAL_PART].filter(cur => cur[kSpecial](state));
         if (specs.length > 0) {
             const result = specs.reduce((prv, cur) => prv[kPriority] < cur[kPriority] ? cur : prv);
-            return result[kHandle](params);
+            const handle = result[kHandle];
+            if (params && typeof handle === 'function') {
+                return handle(params);
+            } else {
+                return handle;
+            }
         }
     }
     // Regular Check
