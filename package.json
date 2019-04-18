@@ -1,6 +1,6 @@
 {
     "name": "specials",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "private": false,
     "description": "A tool to manage general or special handle.",
     "main": "lib/index.js",
